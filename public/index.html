@@ -1,0 +1,1933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Management System</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after {
+      margin: 0; padding: 0; box-sizing: border-box;
+    }
+
+    :root {
+      --sidebar-w: 220px;
+      --accent: #4f46e5;
+      --accent-light: #eef2ff;
+      --accent-hover: #4338ca;
+      --bg-page: #f5f6fa;
+      --bg-card: #ffffff;
+      --border: #e5e7eb;
+      --text-primary: #111827;
+      --text-secondary: #6b7280;
+      --text-muted: #9ca3af;
+      --success: #059669;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --shadow-card: 0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-page);
+      color: var(--text-primary);
+      display: flex;
+      min-height: 100vh;
+      font-size: 14px;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 16px;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 8px 28px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .logo-icon {
+      width: 34px; height: 34px;
+      background: var(--accent);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    .logo-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.3;
+    }
+
+    .logo-text span {
+      display: block;
+      font-weight: 400;
+      color: var(--text-secondary);
+      font-size: 11px;
+    }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0 8px;
+      margin-bottom: 6px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+      margin-bottom: 2px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .nav-item:hover {
+      background: var(--bg-page);
+      color: var(--text-primary);
+    }
+
+    .nav-item.active {
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+
+    .nav-icon { font-size: 16px; width: 18px; }
+
+    .nav-divider { margin: 16px 0; border-top: 1px solid var(--border); }
+
+    /* ── Main ── */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      padding: 32px;
+      max-width: calc(100% - var(--sidebar-w));
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .page-header {
+      margin-bottom: 28px;
+    }
+
+    .page-header h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .page-header p {
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* ── Stat cards ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+    }
+
+    .stat-icon {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px;
+      margin-bottom: 14px;
+    }
+
+    .stat-icon.purple { background: #ede9fe; }
+    .stat-icon.blue   { background: #dbeafe; }
+    .stat-icon.green  { background: #d1fae5; }
+    .stat-icon.amber  { background: #fef3c7; }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* ── Forms ── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      align-items: end;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .field label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .field input {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-primary);
+      background: var(--bg-card);
+      transition: border-color 0.15s;
+      outline: none;
+    }
+
+    .field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.08);
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s, transform 0.1s;
+      font-family: 'Inter', sans-serif;
+      white-space: nowrap;
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+
+    .btn-secondary {
+      background: var(--bg-page);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: #e9eaf0; }
+
+    .btn-danger {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+    .btn-danger:hover { background: #fee2e2; }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { background: var(--bg-page); }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+
+    /* ── Bulk select ── */
+    .bulk-toolbar {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: var(--accent-light);
+      border: 1px solid #c7d2fe;
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent);
+    }
+    .bulk-toolbar.visible { display: flex; }
+    .bulk-toolbar .count { margin-right: auto; }
+
+    tbody tr.selected { background: #eef2ff !important; }
+
+    input[type="checkbox"] {
+      width: 15px; height: 15px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .bulk-edit-banner {
+      background: var(--accent-light);
+      border: 1px solid #c7d2fe;
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      margin-bottom: 20px;
+    }
+    .bulk-edit-banner-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+
+    /* ── Inline editing ── */
+    .inline-input {
+      padding: 5px 8px;
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-primary);
+      background: var(--bg-card);
+      outline: none;
+      width: 100%;
+      box-shadow: 0 0 0 2px rgba(79,70,229,0.12);
+    }
+    tr.editing { background: #f5f4ff !important; }
+    .save-row-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+    }
+    .cancel-row-btn {
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* ── Search bar ── */
+    .search-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .search-input-wrap {
+      position: relative;
+      flex: 1;
+      max-width: 340px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 11px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 15px;
+      pointer-events: none;
+    }
+
+    .search-input-wrap input {
+      width: 100%;
+      padding: 9px 12px 9px 34px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      color: var(--text-primary);
+    }
+
+    .search-input-wrap input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.08);
+    }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead th {
+      background: var(--bg-page);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+
+    tbody tr:hover { background: #fafbff; }
+
+    .actions-cell {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    /* ── Badge ── */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .badge-green { background: #d1fae5; color: #065f46; }
+    .badge-blue  { background: #dbeafe; color: #1e40af; }
+    .badge-amber { background: #fef3c7; color: #92400e; }
+    .badge-red   { background: #fee2e2; color: #991b1b; }
+
+    /* ── Modal (inline edit form) ── */
+    .edit-banner {
+      background: var(--accent-light);
+      border: 1px solid #c7d2fe;
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      margin-bottom: 20px;
+    }
+
+    .edit-banner-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 0;
+      color: var(--text-muted);
+    }
+
+    .empty-state-icon { font-size: 36px; margin-bottom: 12px; }
+    .empty-state-text { font-size: 14px; }
+
+    /* ── Pagination ── */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .pagination-info {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .pagination-btns {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .pg-btn {
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.15s;
+      min-width: 32px;
+      text-align: center;
+    }
+    .pg-btn:hover:not(:disabled) {
+      background: var(--accent-light);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+    .pg-btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+    .pg-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* ── Clickable stat cards ── */
+    .stat-clickable {
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    }
+    .stat-clickable:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(79,70,229,0.12);
+      border-color: var(--accent);
+    }
+    .stat-clickable:active {
+      transform: translateY(-1px);
+    }
+
+    /* ── Chart ── */
+    .chart-wrap { position: relative; height: 280px; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: var(--text-primary);
+      color: white;
+      padding: 12px 18px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 999;
+      max-width: 320px;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: var(--success); }
+    .toast.error   { background: var(--danger); }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🎓</div>
+      <div class="logo-text">
+        SMS Portal
+        <span>Management System</span>
+      </div>
+    </div>
+
+    <!-- Logged in user info -->
+    <div id="user-info" style="
+      background:var(--accent-light);
+      border-radius:var(--radius-sm);
+      padding:10px 12px;
+      margin-bottom:16px;
+      font-size:12px;
+    ">
+      <div style="font-weight:600;color:var(--accent)" id="user-name">Loading...</div>
+      <div style="color:var(--text-secondary)" id="user-email"></div>
+    </div>
+
+    <div class="nav-label">Overview</div>
+    <button class="nav-item active" onclick="showPage('dashboard')">
+      <span class="nav-icon">📊</span> Dashboard
+    </button>
+
+    <div class="nav-divider"></div>
+
+    <div class="nav-label">Records</div>
+    <button class="nav-item" onclick="showPage('students')">
+      <span class="nav-icon">👤</span> Students
+    </button>
+    <button class="nav-item" onclick="showPage('courses')">
+      <span class="nav-icon">📚</span> Courses
+    </button>
+    <button class="nav-item" onclick="showPage('enrollments')">
+      <span class="nav-icon">📋</span> Enrollments
+    </button>
+
+    <div class="nav-divider"></div>
+
+    <div class="nav-label">Lookup</div>
+    <button class="nav-item" onclick="showPage('search')">
+      <span class="nav-icon">🔍</span> Search & Lookup
+    </button>
+
+    <div style="margin-top:auto;padding-top:20px;border-top:1px solid var(--border);margin-top:auto;">
+      <button class="nav-item" onclick="logout()" style="color:var(--danger);width:100%;">
+        <span class="nav-icon">🚪</span> Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- ── Dashboard ── -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <h1>Dashboard</h1>
+        <p>Overview of your student management data</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card stat-clickable" onclick="goToPage('students')" title="View all students">
+          <div class="stat-icon purple">👤</div>
+          <div class="stat-label">Total Students</div>
+          <div class="stat-value" id="total_students">—</div>
+        </div>
+        <div class="stat-card stat-clickable" onclick="goToPage('courses')" title="View all courses">
+          <div class="stat-icon blue">📚</div>
+          <div class="stat-label">Total Courses</div>
+          <div class="stat-value" id="total_courses">—</div>
+        </div>
+        <div class="stat-card stat-clickable" onclick="goToPage('enrollments')" title="View all enrollments">
+          <div class="stat-icon green">📋</div>
+          <div class="stat-label">Total Enrollments</div>
+          <div class="stat-value" id="total_enrollments">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber">⭐</div>
+          <div class="stat-label">Avg. Credits</div>
+          <div class="stat-value" id="avg_credits">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Course Popularity</div>
+            <div class="card-subtitle">Students enrolled per course</div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="courseChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Students ── -->
+    <div id="page-students" class="page">
+      <div class="page-header">
+        <h1>Students</h1>
+        <p>Add, edit, and manage student records</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Add new student</div>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Student ID</label>
+            <input type="number" id="student_id" placeholder="e.g. 101"/>
+          </div>
+          <div class="field">
+            <label>First name</label>
+            <input type="text" id="first_name" placeholder="Jane"/>
+          </div>
+          <div class="field">
+            <label>Last name</label>
+            <input type="text" id="last_name" placeholder="Doe"/>
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="jane@example.com"/>
+          </div>
+          <div class="field">
+            <label>Enrollment date</label>
+            <input type="date" id="enrollment_date"/>
+          </div>
+          <div class="field" style="justify-content:flex-end;">
+            <button class="btn btn-primary" onclick="addStudent()">Add student</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="edit-student-banner"></div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">All students</div>
+
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-sm" onclick="loadStudents()">↻ Refresh</button>
+            <button class="btn btn-primary btn-sm" onclick="exportStudentsExcel()">📊 Export Excel</button>
+          </div>
+        </div>
+        <div id="students-bulk-toolbar" class="bulk-toolbar">
+          <span class="count" id="students-bulk-count">0 selected</span>
+          <button class="btn btn-ghost btn-sm" onclick="bulkEditStudents()">✎ Edit selected</button>
+          <button class="btn btn-danger btn-sm" onclick="bulkDeleteStudents()">🗑 Delete selected</button>
+          <button class="btn btn-secondary btn-sm" onclick="clearStudentSelection()">✕ Clear</button>
+        </div>
+        <div class="table-wrap">
+          <div id="students-output"><div class="empty-state"><div class="empty-state-icon">👤</div><div class="empty-state-text">Click Refresh to load students</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Courses ── -->
+    <div id="page-courses" class="page">
+      <div class="page-header">
+        <h1>Courses</h1>
+        <p>Manage course catalog and instructor assignments</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Add new course</div>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Course ID</label>
+            <input type="number" id="course_id" placeholder="e.g. 201"/>
+          </div>
+          <div class="field">
+            <label>Course name</label>
+            <input type="text" id="course_name" placeholder="Data Structures"/>
+          </div>
+          <div class="field">
+            <label>Instructor</label>
+            <input type="text" id="instructor" placeholder="Prof. Smith"/>
+          </div>
+          <div class="field">
+            <label>Credits</label>
+            <input type="number" id="credits" placeholder="3"/>
+          </div>
+          <div class="field" style="justify-content:flex-end;">
+            <button class="btn btn-primary" onclick="addCourse()">Add course</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="edit-course-banner"></div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">All courses</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-sm" onclick="loadCourses()">↻ Refresh</button>
+            <button class="btn btn-primary btn-sm" onclick="exportCoursesExcel()">📊 Export Excel</button>
+          </div>
+        </div>
+        <div id="courses-bulk-toolbar" class="bulk-toolbar">
+          <span class="count" id="courses-bulk-count">0 selected</span>
+          <button class="btn btn-ghost btn-sm" onclick="bulkEditCourses()">✎ Edit selected</button>
+          <button class="btn btn-danger btn-sm" onclick="bulkDeleteCourses()">🗑 Delete selected</button>
+          <button class="btn btn-secondary btn-sm" onclick="clearCourseSelection()">✕ Clear</button>
+        </div>
+        <div class="table-wrap">
+          <div id="courses-output"><div class="empty-state"><div class="empty-state-icon">📚</div><div class="empty-state-text">Click Refresh to load courses</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Enrollments ── -->
+    <div id="page-enrollments" class="page">
+      <div class="page-header">
+        <h1>Enrollments</h1>
+        <p>Track course registrations and student grades</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Add new enrollment</div>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Enrollment ID</label>
+            <input type="number" id="enrollment_id" placeholder="e.g. 301"/>
+          </div>
+          <div class="field">
+            <label>Student ID</label>
+            <input type="number" id="enrollment_student_id" placeholder="e.g. 101"/>
+          </div>
+          <div class="field">
+            <label>Course ID</label>
+            <input type="number" id="enrollment_course_id" placeholder="e.g. 201"/>
+          </div>
+          <div class="field">
+            <label>Enrollment date</label>
+            <input type="date" id="enrollment_date_add"/>
+          </div>
+          <div class="field">
+            <label>Grade</label>
+            <input type="text" id="grade" placeholder="A / B+ / etc."/>
+          </div>
+          <div class="field" style="justify-content:flex-end;">
+            <button class="btn btn-primary" onclick="addEnrollment()">Add enrollment</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="edit-enrollment-banner"></div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">All enrollments</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-sm" onclick="loadEnrollments()">↻ Refresh</button>
+            <button class="btn btn-primary btn-sm" onclick="exportEnrollmentsExcel()">📊 Export Excel</button>
+          </div>
+        </div>
+        <div id="enrollments-bulk-toolbar" class="bulk-toolbar">
+          <span class="count" id="enrollments-bulk-count">0 selected</span>
+          <button class="btn btn-ghost btn-sm" onclick="bulkEditEnrollments()">✎ Edit selected</button>
+          <button class="btn btn-danger btn-sm" onclick="bulkDeleteEnrollments()">🗑 Delete selected</button>
+          <button class="btn btn-secondary btn-sm" onclick="clearEnrollmentSelection()">✕ Clear</button>
+        </div>
+        <div class="table-wrap">
+          <div id="enrollments-output"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">Click Refresh to load enrollments</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Search ── -->
+    <div id="page-search" class="page">
+      <div class="page-header">
+        <h1>Search &amp; lookup</h1>
+        <p>Find courses by student, find students by course, or look up a specific student–course record</p>
+      </div>
+
+      <!-- Top row: Panel 1 + Panel 2 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;margin-bottom:20px;">
+
+        <!-- Panel 1: student → courses -->
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-header" style="margin-bottom:14px;">
+            <div>
+              <div class="card-title">👤 Student → courses</div>
+              <div class="card-subtitle">All courses a student is enrolled in</div>
+            </div>
+          </div>
+          <div class="search-row" style="margin-bottom:16px;">
+            <div class="search-input-wrap" style="flex:1;max-width:none;">
+              <span class="search-icon">🔍</span>
+              <input type="number" id="search_student" placeholder="Enter student ID…"
+                onkeydown="if(event.key==='Enter') searchStudentCourses()"/>
+            </div>
+            <button class="btn btn-primary" onclick="searchStudentCourses()">Search</button>
+          </div>
+          <div id="search-output">
+            <div class="empty-state" style="padding:32px 0;">
+              <div class="empty-state-icon">👤</div>
+              <div class="empty-state-text">Enter a student ID to see their courses</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 2: course name → students -->
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-header" style="margin-bottom:14px;">
+            <div>
+              <div class="card-title">📚 Course → students</div>
+              <div class="card-subtitle">All students enrolled in a course</div>
+            </div>
+          </div>
+          <div class="search-row" style="margin-bottom:16px;">
+            <div class="search-input-wrap" style="flex:1;max-width:none;">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="search_course_name" placeholder="Enter course name or ID…"
+                onkeydown="if(event.key==='Enter') searchCourseStudents()"/>
+            </div>
+            <button class="btn btn-primary" onclick="searchCourseStudents()">Search</button>
+          </div>
+          <div id="course-search-output">
+            <div class="empty-state" style="padding:32px 0;">
+              <div class="empty-state-icon">📚</div>
+              <div class="empty-state-text">Enter a course name or ID to see enrolled students</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Panel 3: Student ID + Course ID -->
+      <div class="card" style="margin-bottom:0;">
+        <div class="card-header" style="margin-bottom:14px;">
+          <div>
+            <div class="card-title">🎓 Student + Course lookup</div>
+            <div class="card-subtitle">Find a specific student's details in a particular course</div>
+          </div>
+        </div>
+        <div class="search-row" style="margin-bottom:16px;">
+          <div class="search-input-wrap" style="flex:1;max-width:none;">
+            <span class="search-icon">🔍</span>
+            <input type="number" id="search_student_id" placeholder="Enter Student ID…"
+              onkeydown="if(event.key==='Enter') searchStudentCourse()"/>
+          </div>
+          <div class="search-input-wrap" style="flex:1;max-width:none;">
+            <span class="search-icon">🎓</span>
+            <input type="number" id="search_course_id" placeholder="Enter Course ID…"
+              onkeydown="if(event.key==='Enter') searchStudentCourse()"/>
+          </div>
+          <button class="btn btn-primary" onclick="searchStudentCourse()">Search</button>
+        </div>
+        <div id="student-course-output">
+          <div class="empty-state" style="padding:32px 0;">
+            <div class="empty-state-icon">🎓</div>
+            <div class="empty-state-text">Enter a Student ID and Course ID to look up the record</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+<script>
+  // ── Auth check — agar login nahi kiya to login page pe bhejo ──
+  const _token = localStorage.getItem('sms_token');
+  const _user  = JSON.parse(localStorage.getItem('sms_user') || 'null');
+
+  if (!_token || !_user) {
+    window.location.href = '/login.html';
+  } else {
+    // user info sidebar mein dikhao
+    document.getElementById('user-name').textContent  = _user.name;
+    document.getElementById('user-email').textContent = _user.email;
+  }
+
+  // ── authFetch — har request ke saath token bhejo ─────────────────
+  // Ye normal authFetch() ki jagah use hoga
+  async function authFetch(url, options = {}) {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + _token,   // token har request mein
+      ...(options.headers || {})
+    };
+    const res = await fetch(url, { ...options, headers });
+    if (res.status === 401) {
+      // token expire ho gaya ya invalid hai
+      localStorage.removeItem('sms_token');
+      localStorage.removeItem('sms_user');
+      window.location.href = '/login.html';
+    }
+    return res;
+  }
+
+  // ── Logout ────────────────────────────────────────────────────────
+  async function logout() {
+    await authFetch('/auth/logout', { method: 'POST' });
+    localStorage.removeItem('sms_token');
+    localStorage.removeItem('sms_user');
+    window.location.href = '/login.html';
+  }
+
+  // ── Navigation ──────────────────────────────────────────────────
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    event.currentTarget.classList.add('active');
+
+    switch (name) {
+    case "students":
+        loadStudents();
+        break;
+    case "courses":
+        loadCourses();
+        break;
+    case "enrollments":
+        loadEnrollments();
+        break;
+    default:
+        console.log("Invalid page");
+    }
+  }
+
+  // ── Go to page from dashboard card ──────────────────────────────
+  function goToPage(name) {
+    // saare pages chhupao
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    // saare nav items se active hata do
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    // jo page chahiye dikhao
+    document.getElementById('page-' + name).classList.add('active');
+    // sidebar mein bhi highlight karo
+    document.querySelectorAll('.nav-item').forEach(n => {
+      if (n.textContent.trim().toLowerCase().includes(name)) {
+        n.classList.add('active');
+      }
+    });
+    // data load karo
+    switch (name) {
+      case "students":
+        loadStudents();
+        break;
+      case "courses":
+        loadCourses();
+        break;
+      case "enrollments":
+        loadEnrollments();
+        break;
+      default:
+        console.log("Invalid page");
+    }
+  }
+
+  // ── Toast ────────────────────────────────────────────────────────
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + type;
+    setTimeout(() => t.className = 'toast', 3000);
+  }
+
+  // ── Grade badge ──────────────────────────────────────────────────
+  function gradeBadge(grade) {
+    if (!grade) return '—';
+    const g = String(grade).toUpperCase();
+    if (g.startsWith('A')) return `<span class="badge badge-green">${grade}</span>`;
+    if (g.startsWith('B')) return `<span class="badge badge-blue">${grade}</span>`;
+    if (g.startsWith('C')) return `<span class="badge badge-amber">${grade}</span>`;
+    return `<span class="badge badge-red">${grade}</span>`;
+  }
+
+  // ── Dashboard ────────────────────────────────────────────────────
+  async function loadDashboard() {
+    const res = await authFetch('/dashboard');
+    const d = await res.json();
+    document.getElementById('total_students').textContent   = d.total_students;
+    document.getElementById('total_courses').textContent    = d.total_courses;
+    document.getElementById('total_enrollments').textContent = d.total_enrollments;
+    document.getElementById('avg_credits').textContent      = Number(d.avg_credits).toFixed(1);
+  }
+
+  let chartInstance = null;
+  async function loadCourseChart() {
+    const res  = await authFetch('/course-popularity');
+    const data = await res.json();
+    const labels = data.map(i => i.course_name);
+    const values = data.map(i => i.students_enrolled);
+
+    if (chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(document.getElementById('courseChart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Students enrolled',
+          data: values,
+          backgroundColor: 'rgba(79,70,229,0.15)',
+          borderColor: '#4f46e5',
+          borderWidth: 2,
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} students` } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#9ca3af' } },
+          y: { grid: { color: '#f3f4f6' }, ticks: { font: { size: 11 }, color: '#9ca3af', stepSize: 1 }, beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  // ── Students ─────────────────────────────────────────────────────
+  async function loadStudents() {
+    const res  = await authFetch('/students');
+    const data = await res.json();
+    renderStudentTable(data);
+  }
+
+  // store data globally for bulk edit access
+  let _studentsData = [];
+
+  const PAGE_SIZE = 25;
+  let _studentPage = 1;
+  let _coursePage  = 1;
+  let _enrollPage  = 1;
+
+  function renderStudentTable(data) {
+    _studentsData = data;
+    const out = document.getElementById('students-output');
+    if (!data.length) { out.innerHTML = emptyState('👤', 'No students found'); return; }
+
+    const totalPages = Math.ceil(data.length / PAGE_SIZE);
+    if (_studentPage > totalPages) _studentPage = 1;
+    const start = (_studentPage - 1) * PAGE_SIZE;
+    const pageData = data.slice(start, start + PAGE_SIZE);
+
+    let html = `<table>
+      <thead><tr>
+        <th style="width:36px;"><input type="checkbox" id="select-all-students" onclick="toggleSelectAll('students', this.checked)" title="Select all"/></th>
+        <th>ID</th><th>First name</th><th>Last name</th>
+        <th>Email</th><th>Enrolled</th><th>Actions</th>
+      </tr></thead><tbody>`;
+
+    pageData.forEach(r => {
+      html += `<tr id="student-row-${r.student_id}">
+        <td><input type="checkbox" class="student-cb" value="${r.student_id}" onchange="updateBulkToolbar('students')" data-row='${JSON.stringify(r)}'/></td>
+        <td><strong>#${r.student_id}</strong></td>
+        <td>${r.first_name}</td>
+        <td>${r.last_name}</td>
+        <td style="color:var(--text-secondary)">${r.email}</td>
+        <td style="color:var(--text-secondary)">${fmtDate(r.enrollment_date)}</td>
+        <td><div class="actions-cell">
+          <button class="btn btn-ghost btn-sm" onclick="editStudent('${r.student_id}','${r.first_name}','${r.last_name}','${r.email}','${r.enrollment_date}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteStudent(${r.student_id})">Delete</button>
+        </div></td>
+      </tr>`;
+    });
+
+    html += '</tbody></table>';
+    html += buildPagination('student', _studentPage, totalPages, data.length, start, pageData.length);
+    out.innerHTML = html;
+    clearStudentSelection();
+  }
+
+  function editStudent(id, fn, ln, email, date) {
+    const fmt = new Date(date).toISOString().split('T')[0];
+    document.getElementById('edit-student-banner').innerHTML = `
+      <div class="edit-banner">
+        <div class="edit-banner-title">Editing student #${id}</div>
+        <div class="form-grid">
+          <div class="field"><label>First name</label><input id="e_fn" value="${fn}"/></div>
+          <div class="field"><label>Last name</label><input id="e_ln" value="${ln}"/></div>
+          <div class="field"><label>Email</label><input type="email" id="e_email" value="${email}"/></div>
+          <div class="field"><label>Enrollment date</label><input type="date" id="e_date" value="${fmt}"/></div>
+          <div class="field" style="justify-content:flex-end;gap:8px;flex-direction:row;align-items:flex-end;">
+            <button class="btn btn-secondary" onclick="document.getElementById('edit-student-banner').innerHTML=''">Cancel</button>
+            <button class="btn btn-primary" onclick="submitEdit(${id})">Save changes</button>
+          </div>
+        </div>
+      </div>`;
+    document.getElementById('edit-student-banner').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  async function submitEdit(id) {
+    const body = {
+      first_name: document.getElementById('e_fn').value,
+      last_name:  document.getElementById('e_ln').value,
+      email:      document.getElementById('e_email').value,
+      enrollment_date: document.getElementById('e_date').value,
+    };
+    if (Object.values(body).some(v => !v)) { showToast('All fields are required', 'error'); return; }
+    const res = await authFetch(`/students/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const r = await res.json();
+    showToast(r.message || 'Student updated');
+    document.getElementById('edit-student-banner').innerHTML = '';
+    loadStudents();
+  }
+
+  async function deleteStudent(id) {
+    // check how many enrollments this student has first
+    const countRes = await authFetch(`/students/${id}/enrollment-count`);
+    const { count } = await countRes.json();
+
+    let msg = 'Delete this student?';
+    if (count > 0) {
+      msg = `This student has ${count} enrollment record(s). Deleting will also remove all ${count} of their enrollments. Continue?`;
+    }
+    if (!confirm(msg)) return;
+
+    const res = await authFetch(`/students/${id}?cascade=true`, { method: 'DELETE' });
+    const r = await res.json();
+    if (!res.ok) { showToast(r.error || 'Delete failed', 'error'); return; }
+    showToast(r.message || 'Student deleted');
+    loadStudents();
+  }
+
+  async function addStudent() {
+    const body = {
+      student_id:      document.getElementById('student_id').value,
+      first_name:      document.getElementById('first_name').value,
+      last_name:       document.getElementById('last_name').value,
+      email:           document.getElementById('email').value,
+      enrollment_date: document.getElementById('enrollment_date').value,
+    };
+    if (Object.values(body).some(v => !v)) { showToast('Please fill all fields', 'error'); return; }
+    const res = await authFetch('/students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const r = await res.json();
+    showToast(r.message || 'Student added');
+    ['student_id','first_name','last_name','email','enrollment_date'].forEach(id => document.getElementById(id).value = '');
+    loadStudents();
+  }
+
+  // ── Courses ──────────────────────────────────────────────────────
+  async function loadCourses() {
+    const res  = await authFetch('/courses');
+    const data = await res.json();
+    renderCourseTable(data);
+  }
+
+  let _coursesData = [];
+
+  function renderCourseTable(data) {
+    _coursesData = data;
+    const out = document.getElementById('courses-output');
+    if (!data.length) { out.innerHTML = emptyState('📚', 'No courses found'); return; }
+
+    const totalPages = Math.ceil(data.length / PAGE_SIZE);
+    if (_coursePage > totalPages) _coursePage = 1;
+    const start = (_coursePage - 1) * PAGE_SIZE;
+    const pageData = data.slice(start, start + PAGE_SIZE);
+
+    let html = `<table>
+      <thead><tr>
+        <th style="width:36px;"><input type="checkbox" id="select-all-courses" onclick="toggleSelectAll('courses', this.checked)" title="Select all"/></th>
+        <th>ID</th><th>Course name</th><th>Instructor</th><th>Credits</th><th>Actions</th>
+      </tr></thead><tbody>`;
+
+    pageData.forEach(r => {
+      html += `<tr id="course-row-${r.course_id}">
+        <td><input type="checkbox" class="course-cb" value="${r.course_id}" onchange="updateBulkToolbar('courses')" data-row='${JSON.stringify(r)}'/></td>
+        <td><strong>#${r.course_id}</strong></td>
+        <td>${r.course_name}</td>
+        <td style="color:var(--text-secondary)">${r.instructor}</td>
+        <td><span class="badge badge-blue">${r.credits} cr</span></td>
+        <td><div class="actions-cell">
+          <button class="btn btn-ghost btn-sm" onclick="editCourse(${r.course_id},'${r.course_name}','${r.instructor}',${r.credits})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCourse(${r.course_id})">Delete</button>
+        </div></td>
+      </tr>`;
+    });
+
+    html += '</tbody></table>';
+    html += buildPagination('course', _coursePage, totalPages, data.length, start, pageData.length);
+    out.innerHTML = html;
+    clearCourseSelection();
+  }
+
+  function editCourse(id, name, inst, credits) {
+    document.getElementById('edit-course-banner').innerHTML = `
+      <div class="edit-banner">
+        <div class="edit-banner-title">Editing course #${id}</div>
+        <div class="form-grid">
+          <div class="field"><label>Course name</label><input id="ec_name" value="${name}"/></div>
+          <div class="field"><label>Instructor</label><input id="ec_inst" value="${inst}"/></div>
+          <div class="field"><label>Credits</label><input type="number" id="ec_credits" value="${credits}"/></div>
+          <div class="field" style="justify-content:flex-end;gap:8px;flex-direction:row;align-items:flex-end;">
+            <button class="btn btn-secondary" onclick="document.getElementById('edit-course-banner').innerHTML=''">Cancel</button>
+            <button class="btn btn-primary" onclick="submitCourseEdit(${id})">Save changes</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  async function submitCourseEdit(id) {
+    const body = {
+      course_name: document.getElementById('ec_name').value,
+      instructor:  document.getElementById('ec_inst').value,
+      credits:     document.getElementById('ec_credits').value,
+    };
+    if (Object.values(body).some(v => !v)) { showToast('All fields are required', 'error'); return; }
+    const res = await authFetch(`/courses/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const r = await res.json();
+    showToast(r.message || 'Course updated');
+    document.getElementById('edit-course-banner').innerHTML = '';
+    loadCourses();
+  }
+
+  async function deleteCourse(id) {
+    const countRes = await authFetch(`/courses/${id}/enrollment-count`);
+    const { count } = await countRes.json();
+
+    let msg = 'Delete this course?';
+    if (count > 0) {
+      msg = `This course has ${count} enrollment record(s). Deleting will also remove all ${count} of those enrollments. Continue?`;
+    }
+    if (!confirm(msg)) return;
+
+    const res = await authFetch(`/courses/${id}?cascade=true`, { method: 'DELETE' });
+    const r = await res.json();
+    if (!res.ok) { showToast(r.error || 'Delete failed', 'error'); return; }
+    showToast(r.message || 'Course deleted');
+    loadCourses();
+  }
+
+  async function addCourse() {
+    const body = {
+      course_id:   document.getElementById('course_id').value,
+      course_name: document.getElementById('course_name').value,
+      instructor:  document.getElementById('instructor').value,
+      credits:     document.getElementById('credits').value,
+    };
+    if (Object.values(body).some(v => !v)) { showToast('Please fill all fields', 'error'); return; }
+    const res = await authFetch('/courses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const r = await res.json();
+    showToast(r.message || 'Course added');
+    ['course_id','course_name','instructor','credits'].forEach(id => document.getElementById(id).value = '');
+    loadCourses();
+  }
+
+  // ── Enrollments ──────────────────────────────────────────────────
+  async function loadEnrollments() {
+    const res  = await authFetch('/enrollments');
+    const data = await res.json();
+    renderEnrollmentTable(data);
+  }
+
+  let _enrollmentsData = [];
+
+  function renderEnrollmentTable(data) {
+    _enrollmentsData = data;
+    const out = document.getElementById('enrollments-output');
+    if (!data.length) { out.innerHTML = emptyState('📋', 'No enrollments found'); return; }
+
+    const totalPages = Math.ceil(data.length / PAGE_SIZE);
+    if (_enrollPage > totalPages) _enrollPage = 1;
+    const start = (_enrollPage - 1) * PAGE_SIZE;
+    const pageData = data.slice(start, start + PAGE_SIZE);
+
+    let html = `<table>
+      <thead><tr>
+        <th style="width:36px;"><input type="checkbox" id="select-all-enrollments" onclick="toggleSelectAll('enrollments', this.checked)" title="Select all"/></th>
+        <th>Enrollment ID</th><th>Student ID</th><th>Course ID</th>
+        <th>Date</th><th>Grade</th><th>Actions</th>
+      </tr></thead><tbody>`;
+
+    pageData.forEach(r => {
+      html += `<tr id="enrollment-row-${r.enrollment_id}">
+        <td><input type="checkbox" class="enrollment-cb" value="${r.enrollment_id}" onchange="updateBulkToolbar('enrollments')" data-row='${JSON.stringify(r)}'/></td>
+        <td><strong>#${r.enrollment_id}</strong></td>
+        <td id="e-sid-${r.enrollment_id}">#${r.student_id}</td>
+        <td id="e-cid-${r.enrollment_id}">#${r.course_id}</td>
+        <td id="e-date-${r.enrollment_id}" style="color:var(--text-secondary)">${fmtDate(r.enrollment_date)}</td>
+        <td id="e-grade-${r.enrollment_id}">${gradeBadge(r.grade)}</td>
+        <td><div class="actions-cell">
+          <button class="btn btn-ghost btn-sm" onclick="editEnrollment(${r.enrollment_id},${r.student_id},${r.course_id},'${r.enrollment_date}','${r.grade}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteEnrollment(${r.enrollment_id})">Delete</button>
+        </div></td>
+      </tr>`;
+    });
+
+    html += '</tbody></table>';
+    html += buildPagination('enroll', _enrollPage, totalPages, data.length, start, pageData.length);
+    out.innerHTML = html;
+    clearEnrollmentSelection();
+  }
+
+  // ── Inline row editing for enrollments ───────────────────────────
+  function makeRowEditable(eid, sid, cid, rawDate, grade) {
+    const fmt = new Date(rawDate).toISOString().split('T')[0];
+    const row = document.getElementById('enrollment-row-' + eid);
+    row.classList.add('editing');
+
+    document.getElementById('e-sid-' + eid).innerHTML   = `<input class="inline-input" id="ie-sid-${eid}"   type="number" value="${sid}"   style="width:70px"/>`;
+    document.getElementById('e-cid-' + eid).innerHTML   = `<input class="inline-input" id="ie-cid-${eid}"   type="number" value="${cid}"   style="width:70px"/>`;
+    document.getElementById('e-date-' + eid).innerHTML  = `<input class="inline-input" id="ie-date-${eid}"  type="date"   value="${fmt}"  style="width:130px"/>`;
+    document.getElementById('e-grade-' + eid).innerHTML = `<input class="inline-input" id="ie-grade-${eid}" type="text"   value="${grade}" style="width:50px"/>`;
+
+    // replace action buttons with Save / Cancel
+    row.querySelector('.actions-cell').innerHTML = `
+      <button class="save-row-btn"   onclick="saveInlineEnrollment(${eid})">✓ Save</button>
+      <button class="cancel-row-btn" onclick="loadEnrollments()">✕</button>`;
+  }
+
+  async function saveInlineEnrollment(eid) {
+    const body = {
+      student_id:      document.getElementById('ie-sid-'  + eid).value,
+      course_id:       document.getElementById('ie-cid-'  + eid).value,
+      enrollment_date: document.getElementById('ie-date-' + eid).value,
+      grade:           document.getElementById('ie-grade-'+ eid).value,
+    };
+    if (Object.values(body).some(v => !v)) { showToast('All fields required', 'error'); return; }
+    const res = await authFetch('/enrollments/' + eid, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const r = await res.json();
+    showToast(r.message || 'Enrollment updated');
+    loadEnrollments();
+  }
+
+  // ── Bulk EDIT enrollments — inline edit all selected rows ─────────
+  function bulkEditEnrollments() {
+    const checked = getChecked('enrollment-cb');
+    if (!checked.length) { showToast('Select at least one enrollment', 'error'); return; }
+    checked.forEach(cb => {
+      const r = JSON.parse(cb.getAttribute('data-row'));
+      makeRowEditable(r.enrollment_id, r.student_id, r.course_id, r.enrollment_date, r.grade);
+    });
+    showToast(`${checked.length} row(s) now editable — edit and save each`);
+  }
+
+  function editEnrollment(id, sid, cid, date, grade) {
+    makeRowEditable(id, sid, cid, date, grade);
+  }
+
+  async function submitEnrollmentEdit(id) {
+    const body = {
+      student_id:      document.getElementById('ee_sid').value,
+      course_id:       document.getElementById('ee_cid').value,
+      enrollment_date: document.getElementById('ee_date').value,
+      grade:           document.getElementById('ee_grade').value,
+    };
+    if (Object.values(body).some(v => !v)) { showToast('All fields are required', 'error'); return; }
+    const res = await authFetch(`/enrollments/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const r = await res.json();
+    showToast(r.message || 'Enrollment updated');
+    document.getElementById('edit-enrollment-banner').innerHTML = '';
+    loadEnrollments();
+  }
+
+  async function deleteEnrollment(id) {
+    if (!confirm('Delete this enrollment?')) return;
+    const res = await authFetch(`/enrollments/${id}`, { method: 'DELETE' });
+    const r = await res.json();
+    showToast(r.message || 'Enrollment deleted');
+    loadEnrollments();
+  }
+
+  async function addEnrollment() {
+    const body = {
+      enrollment_id:   document.getElementById('enrollment_id').value,
+      student_id:      document.getElementById('enrollment_student_id').value,
+      course_id:       document.getElementById('enrollment_course_id').value,
+      enrollment_date: document.getElementById('enrollment_date_add').value,
+      grade:           document.getElementById('grade').value,
+    };
+    if (Object.values(body).some(v => !v)) { showToast('Please fill all fields', 'error'); return; }
+    const res = await authFetch('/enrollments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const r = await res.json();
+    showToast(r.message || 'Enrollment added');
+    ['enrollment_id','enrollment_student_id','enrollment_course_id','enrollment_date_add','grade'].forEach(id => document.getElementById(id).value = '');
+    loadEnrollments();
+  }
+
+  // ── Search ───────────────────────────────────────────────────────
+  async function searchStudentCourses() {
+    const id = document.getElementById('search_student').value;
+    if (!id) { showToast('Enter a student ID', 'error'); return; }
+    const res  = await authFetch(`/student-courses/${id}`);
+    const data = await res.json();
+    const out  = document.getElementById('search-output');
+
+    if (!data.length) { out.innerHTML = emptyState('🔍', `No courses found for student #${id}`); return; }
+
+    let html = `<table>
+      <thead><tr><th>Student ID</th><th>Name</th><th>Course</th><th>Instructor</th><th>Grade</th></tr></thead><tbody>`;
+    data.forEach(r => {
+      html += `<tr>
+        <td>#${r.student_id}</td>
+        <td><strong>${r.student_name}</strong></td>
+        <td>${r.course_name}</td>
+        <td style="color:var(--text-secondary)">${r.instructor}</td>
+        <td>${gradeBadge(r.grade)}</td>
+      </tr>`;
+    });
+    out.innerHTML = html + '</tbody></table>';
+  }
+
+  async function searchCourseStudents() {
+    const name = document.getElementById('search_course_name').value.trim();
+    if (!name) { showToast('Enter a course name', 'error'); return; }
+    const out = document.getElementById('course-search-output');
+    out.innerHTML = emptyState('⏳', 'Searching…');
+    const res  = await authFetch(`/course-students-by-name?name=${encodeURIComponent(name)}`);
+    const data = await res.json();
+
+    if (!data.length) {
+      out.innerHTML = emptyState('📚', `No students found for "${name}"`);
+      return;
+    }
+
+    const course = data[0];
+    let html = `
+      <div style="background:var(--accent-light);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;display:flex;gap:16px;align-items:center;">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--accent);">${course.course_name}</div>
+          <div style="font-size:12px;color:var(--text-secondary);">Instructor: ${course.instructor} &nbsp;·&nbsp; <span class="badge badge-blue">${course.credits} credits</span></div>
+        </div>
+        <div style="margin-left:auto;text-align:right;">
+          <div style="font-size:22px;font-weight:600;color:var(--accent);">${data.length}</div>
+          <div style="font-size:11px;color:var(--text-secondary);">students</div>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Student ID</th><th>Name</th><th>Enrolled</th><th>Grade</th></tr></thead>
+        <tbody>`;
+    data.forEach(r => {
+      html += `<tr>
+        <td>#${r.student_id}</td>
+        <td><strong>${r.student_name}</strong></td>
+        <td style="color:var(--text-secondary)">${fmtDate(r.enrollment_date)}</td>
+        <td>${gradeBadge(r.grade)}</td>
+      </tr>`;
+    });
+    out.innerHTML = html + '</tbody></table>';
+  }
+
+  async function searchStudentCourse() {
+    const sid = document.getElementById('search_student_id').value.trim();
+    const cid = document.getElementById('search_course_id').value.trim();
+    const out = document.getElementById('student-course-output');
+
+    if (!sid || !cid) { showToast('Enter both Student ID and Course ID', 'error'); return; }
+
+    out.innerHTML = emptyState('⏳', 'Searching…');
+    const res  = await authFetch(`/student-course-detail?student_id=${sid}&course_id=${cid}`);
+    const data = await res.json();
+
+    if (!data || data.error || !data.student_name) {
+      out.innerHTML = emptyState('🎓', `No record found for Student #${sid} in Course #${cid}`);
+      return;
+    }
+
+    out.innerHTML = `
+      <table>
+        <thead><tr>
+          <th>Student ID</th><th>Name</th><th>Course</th><th>Instructor</th><th>Grade</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>#${data.student_id}</strong></td>
+            <td><strong>${data.student_name}</strong></td>
+            <td>${data.course_name}</td>
+            <td style="color:var(--text-secondary)">${data.instructor}</td>
+            <td>${gradeBadge(data.grade)}</td>
+          </tr>
+        </tbody>
+      </table>`;
+  }
+
+  // ── Bulk select helpers ──────────────────────────────────────────
+
+  function getChecked(cls) {
+    return [...document.querySelectorAll('.' + cls + ':checked')];
+  }
+
+  function toggleSelectAll(type, checked) {
+    const map = { students: 'student-cb', courses: 'course-cb', enrollments: 'enrollment-cb' };
+    document.querySelectorAll('.' + map[type]).forEach(cb => cb.checked = checked);
+    document.querySelectorAll('.' + map[type]).forEach(cb => {
+      const row = cb.closest('tr');
+      if (row) row.classList.toggle('selected', checked);
+    });
+    updateBulkToolbar(type);
+  }
+
+  function updateBulkToolbar(type) {
+    const map = { students: 'student-cb', courses: 'course-cb', enrollments: 'enrollment-cb' };
+    const checked = getChecked(map[type]);
+    const toolbar = document.getElementById(type + '-bulk-toolbar');
+    const count   = document.getElementById(type + '-bulk-count');
+    toolbar.classList.toggle('visible', checked.length > 0);
+    count.textContent = checked.length + ' selected';
+    // highlight rows
+    document.querySelectorAll('.' + map[type]).forEach(cb => {
+      cb.closest('tr').classList.toggle('selected', cb.checked);
+    });
+    // sync select-all checkbox state
+    const all = document.querySelectorAll('.' + map[type]);
+    const sa  = document.getElementById('select-all-' + type);
+    if (sa) sa.checked = all.length > 0 && checked.length === all.length;
+  }
+
+  function clearStudentSelection() {
+    document.querySelectorAll('.student-cb').forEach(cb => { cb.checked = false; cb.closest('tr').classList.remove('selected'); });
+    const sa = document.getElementById('select-all-students'); if (sa) sa.checked = false;
+    document.getElementById('students-bulk-toolbar').classList.remove('visible');
+  }
+  function clearCourseSelection() {
+    document.querySelectorAll('.course-cb').forEach(cb => { cb.checked = false; cb.closest('tr').classList.remove('selected'); });
+    const sa = document.getElementById('select-all-courses'); if (sa) sa.checked = false;
+    document.getElementById('courses-bulk-toolbar').classList.remove('visible');
+  }
+  function clearEnrollmentSelection() {
+    document.querySelectorAll('.enrollment-cb').forEach(cb => { cb.checked = false; cb.closest('tr').classList.remove('selected'); });
+    const sa = document.getElementById('select-all-enrollments'); if (sa) sa.checked = false;
+    document.getElementById('enrollments-bulk-toolbar').classList.remove('visible');
+  }
+
+  // ── Bulk DELETE ───────────────────────────────────────────────────
+
+  // Generic bulk-delete runner that actually checks each response
+  async function runBulkDelete(ids, urlPrefix, cascade = false) {
+    const suffix = cascade ? '?cascade=true' : '';
+    const results = await Promise.all(ids.map(async (id) => {
+      try {
+        const res = await authFetch(`${urlPrefix}/${id}${suffix}`, { method: 'DELETE' });
+        const data = await res.json().catch(() => ({}));
+        return { id, ok: res.ok, message: data.message || data.error || `HTTP ${res.status}` };
+      } catch (err) {
+        return { id, ok: false, message: err.message };
+      }
+    }));
+
+    const succeeded = results.filter(r => r.ok);
+    const failed     = results.filter(r => !r.ok);
+
+    return { succeeded, failed };
+  }
+
+  async function bulkDeleteStudents() {
+    const ids = getChecked('student-cb').map(cb => cb.value);
+    if (!ids.length) return;
+
+    // check enrollment counts for all selected students
+    const counts = await Promise.all(ids.map(async id => {
+      const res = await authFetch(`/students/${id}/enrollment-count`);
+      const d = await res.json();
+      return d.count;
+    }));
+    const totalEnrollments = counts.reduce((a, b) => a + b, 0);
+
+    let msg = `Delete ${ids.length} student(s)? This cannot be undone.`;
+    if (totalEnrollments > 0) {
+      msg = `These ${ids.length} student(s) have ${totalEnrollments} enrollment record(s) total. Deleting will also remove all of those enrollments. Continue?`;
+    }
+    if (!confirm(msg)) return;
+
+    const { succeeded, failed } = await runBulkDelete(ids, '/students', true);
+
+    if (failed.length) {
+      console.error('Bulk delete failures:', failed);
+      showToast(`${succeeded.length} deleted, ${failed.length} failed. Check console.`, 'error');
+    } else {
+      showToast(`${succeeded.length} student(s) deleted (with their enrollments)`);
+    }
+    loadStudents();
+  }
+
+  async function bulkDeleteCourses() {
+    const ids = getChecked('course-cb').map(cb => cb.value);
+    if (!ids.length) return;
+
+    const counts = await Promise.all(ids.map(async id => {
+      const res = await authFetch(`/courses/${id}/enrollment-count`);
+      const d = await res.json();
+      return d.count;
+    }));
+    const totalEnrollments = counts.reduce((a, b) => a + b, 0);
+
+    let msg = `Delete ${ids.length} course(s)? This cannot be undone.`;
+    if (totalEnrollments > 0) {
+      msg = `These ${ids.length} course(s) have ${totalEnrollments} enrollment record(s) total. Deleting will also remove all of those enrollments. Continue?`;
+    }
+    if (!confirm(msg)) return;
+
+    const { succeeded, failed } = await runBulkDelete(ids, '/courses', true);
+
+    if (failed.length) {
+      console.error('Bulk delete failures:', failed);
+      showToast(`${succeeded.length} deleted, ${failed.length} failed. Check console.`, 'error');
+    } else {
+      showToast(`${succeeded.length} course(s) deleted (with their enrollments)`);
+    }
+    loadCourses();
+  }
+
+  async function bulkDeleteEnrollments() {
+    const ids = getChecked('enrollment-cb').map(cb => cb.value);
+    if (!ids.length) return;
+    if (!confirm(`Delete ${ids.length} enrollment(s)? This cannot be undone.`)) return;
+
+    const { succeeded, failed } = await runBulkDelete(ids, '/enrollments');
+
+    if (failed.length) {
+      console.error('Bulk delete failures:', failed);
+      showToast(`${succeeded.length} deleted, ${failed.length} failed. Check console.`, 'error');
+    } else {
+      showToast(`${succeeded.length} enrollment(s) deleted`);
+    }
+    loadEnrollments();
+  }
+
+  // ── Bulk EDIT — students ──────────────────────────────────────────
+
+  function bulkEditStudents() {
+    const checked = getChecked('student-cb');
+    if (!checked.length) return;
+    const rows = checked.map(cb => JSON.parse(cb.getAttribute('data-row')));
+
+    let fields = `
+      <div class="form-grid">
+        <div class="field"><label>First name <span style="color:var(--text-muted)">(leave blank to keep)</span></label><input id="be_fn" placeholder="New first name"/></div>
+        <div class="field"><label>Last name</label><input id="be_ln" placeholder="New last name"/></div>
+        <div class="field"><label>Email</label><input type="email" id="be_email" placeholder="New email"/></div>
+        <div class="field"><label>Enrollment date</label><input type="date" id="be_date"/></div>
+        <div class="field" style="justify-content:flex-end;gap:8px;flex-direction:row;align-items:flex-end;">
+          <button class="btn btn-secondary" onclick="document.getElementById('edit-student-banner').innerHTML=''">Cancel</button>
+          <button class="btn btn-primary" onclick="submitBulkEditStudents(${JSON.stringify(rows.map(r=>r.student_id))})">Save to ${rows.length} student(s)</button>
+        </div>
+      </div>`;
+
+    document.getElementById('edit-student-banner').innerHTML = `
+      <div class="bulk-edit-banner">
+        <div class="bulk-edit-banner-title">Bulk editing ${rows.length} student(s): ${rows.map(r=>r.first_name+' '+r.last_name).join(', ')}</div>
+        ${fields}
+      </div>`;
+    document.getElementById('edit-student-banner').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  async function submitBulkEditStudents(ids) {
+    const fn    = document.getElementById('be_fn').value.trim();
+    const ln    = document.getElementById('be_ln').value.trim();
+    const email = document.getElementById('be_email').value.trim();
+    const date  = document.getElementById('be_date').value;
+
+    if (!fn && !ln && !email && !date) { showToast('Fill at least one field to update', 'error'); return; }
+
+    const updates = ids.map(id => {
+      const orig = _studentsData.find(s => s.student_id == id);
+      return authFetch(`/students/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          first_name:      fn    || orig.first_name,
+          last_name:       ln    || orig.last_name,
+          email:           email || orig.email,
+          enrollment_date: date  || new Date(orig.enrollment_date).toISOString().split('T')[0],
+        })
+      });
+    });
+
+    await Promise.all(updates);
+    showToast(`${ids.length} student(s) updated`);
+    document.getElementById('edit-student-banner').innerHTML = '';
+    loadStudents();
+  }
+
+  // ── Bulk EDIT — courses ───────────────────────────────────────────
+
+  function bulkEditCourses() {
+    const checked = getChecked('course-cb');
+    if (!checked.length) return;
+    const rows = checked.map(cb => JSON.parse(cb.getAttribute('data-row')));
+
+    document.getElementById('edit-course-banner').innerHTML = `
+      <div class="bulk-edit-banner">
+        <div class="bulk-edit-banner-title">Bulk editing ${rows.length} course(s): ${rows.map(r=>r.course_name).join(', ')}</div>
+        <div class="form-grid">
+          <div class="field"><label>Instructor <span style="color:var(--text-muted)">(leave blank to keep)</span></label><input id="bec_inst" placeholder="New instructor"/></div>
+          <div class="field"><label>Credits</label><input type="number" id="bec_credits" placeholder="New credits"/></div>
+          <div class="field" style="justify-content:flex-end;gap:8px;flex-direction:row;align-items:flex-end;">
+            <button class="btn btn-secondary" onclick="document.getElementById('edit-course-banner').innerHTML=''">Cancel</button>
+            <button class="btn btn-primary" onclick="submitBulkEditCourses(${JSON.stringify(rows.map(r=>r.course_id))})">Save to ${rows.length} course(s)</button>
+          </div>
+        </div>
+      </div>`;
+    document.getElementById('edit-course-banner').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  async function submitBulkEditCourses(ids) {
+    const inst    = document.getElementById('bec_inst').value.trim();
+    const credits = document.getElementById('bec_credits').value.trim();
+    if (!inst && !credits) { showToast('Fill at least one field to update', 'error'); return; }
+
+    const updates = ids.map(id => {
+      const orig = _coursesData.find(c => c.course_id == id);
+      return authFetch(`/courses/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          course_name: orig.course_name,
+          instructor:  inst    || orig.instructor,
+          credits:     credits || orig.credits,
+        })
+      });
+    });
+
+    await Promise.all(updates);
+    showToast(`${ids.length} course(s) updated`);
+    document.getElementById('edit-course-banner').innerHTML = '';
+    loadCourses();
+  }
+
+  // ── Pagination helpers ───────────────────────────────────────────
+
+  function buildPagination(type, currentPage, totalPages, totalItems, start, pageCount) {
+    if (totalPages <= 1) return '';
+
+    const end = start + pageCount;
+    let html = `<div class="pagination">
+      <div class="pagination-info">
+        Showing ${start + 1}–${end} of ${totalItems}
+      </div>
+      <div class="pagination-btns">
+        <button class="pg-btn" onclick="changePage('${type}', ${currentPage - 1})"
+          ${currentPage === 1 ? 'disabled' : ''}>← Prev</button>`;
+
+    // page number buttons
+    for (let i = 1; i <= totalPages; i++) {
+      if (
+        i === 1 ||
+        i === totalPages ||
+        (i >= currentPage - 1 && i <= currentPage + 1)
+      ) {
+        html += `<button class="pg-btn ${i === currentPage ? 'active' : ''}"
+          onclick="changePage('${type}', ${i})">${i}</button>`;
+      } else if (i === currentPage - 2 || i === currentPage + 2) {
+        html += `<span style="color:var(--text-muted);padding:0 4px;">…</span>`;
+      }
+    }
+
+    html += `<button class="pg-btn" onclick="changePage('${type}', ${currentPage + 1})"
+        ${currentPage === totalPages ? 'disabled' : ''}>Next →</button>
+      </div>
+    </div>`;
+
+    return html;
+  }
+
+  function changePage(type, page) {
+    if (type === 'student') {
+      _studentPage = page;
+      renderStudentTable(_studentsData);
+    } else if (type === 'course') {
+      _coursePage = page;
+      renderCourseTable(_coursesData);
+    } else if (type === 'enroll') {
+      _enrollPage = page;
+      renderEnrollmentTable(_enrollmentsData);
+    }
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────
+  function fmtDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  function emptyState(icon, text) {
+    return `<div class="empty-state"><div class="empty-state-icon">${icon}</div><div class="empty-state-text">${text}</div></div>`;
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────
+  loadDashboard();
+  loadCourseChart();
+  function exportToExcel(data, fileName, sheetName) {
+    if (!data || data.length === 0) {
+        alert("No data available to export.");
+        return;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+
+    XLSX.writeFile(workbook, fileName + ".xlsx");
+}
+
+async function exportStudentsExcel() {
+    const res = await authFetch('/students');
+    const data = await res.json();
+
+    const formattedData = data.map(student => ({
+        ...student,
+        enrollment_date: student.enrollment_date.split("T")[0]
+    }));
+
+    exportToExcel(formattedData, "Students", "Students");
+}
+
+async function exportCoursesExcel() {
+    const res = await authFetch('/courses');
+    const data = await res.json();
+
+    const formattedData = data.map(course => ({
+        ...course,
+        enrollment_date: course.enrollment_date.split("T")[0]
+    }));
+
+    exportToExcel(formattedData, "Courses", "Courses");
+}
+
+
+async function exportEnrollmentsExcel() {
+    const res = await authFetch('/enrollments');
+    const data = await res.json();
+
+    const formattedData = data.map(enrollment => ({
+        ...enrollment,
+        enrollment_date: enrollment.enrollment_date.split("T")[0]
+    }));
+
+    exportToExcel(formattedData, "Enrollments", "Enrollments");
+}
+</script>
+</body>
+</html> 

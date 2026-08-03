@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SMS Portal — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --accent:        #4f46e5;
+      --accent-hover:  #4338ca;
+      --bg-page:       #f5f6fa;
+      --bg-card:       #ffffff;
+      --border:        #e5e7eb;
+      --text-primary:  #111827;
+      --text-secondary:#6b7280;
+      --text-muted:    #9ca3af;
+      --danger:        #dc2626;
+      --danger-light:  #fef2f2;
+      --radius-sm:     6px;
+      --radius-lg:     14px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-page);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .auth-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    }
+
+    /* ── Logo ── */
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: var(--accent);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .logo-text { font-size: 15px; font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+    .logo-text span { display: block; font-size: 11px; font-weight: 400; color: var(--text-secondary); }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      background: var(--bg-page);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+      margin-bottom: 28px;
+      gap: 4px;
+    }
+    .tab {
+      flex: 1; padding: 8px; text-align: center;
+      border-radius: 4px; font-size: 13px; font-weight: 500;
+      cursor: pointer; border: none; background: none;
+      color: var(--text-secondary); transition: all 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .tab.active {
+      background: var(--bg-card);
+      color: var(--accent);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    /* ── Forms ── */
+    .form { display: none; flex-direction: column; gap: 16px; }
+    .form.active { display: flex; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+    .field input {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.08);
+    }
+
+    /* ── Button ── */
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 11px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.15s;
+      margin-top: 4px;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:disabled { background: var(--text-muted); cursor: not-allowed; }
+
+    /* ── Messages ── */
+    .msg {
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      display: none;
+    }
+    .msg.error   { background: var(--danger-light); color: var(--danger); display: block; }
+    .msg.success { background: #d1fae5; color: #065f46; display: block; }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div class="auth-card">
+
+  <!-- Logo -->
+  <div class="logo">
+    <div class="logo-icon">🎓</div>
+    <div class="logo-text">
+      SMS Portal
+      <span>Student Management System</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('signin')">Sign In</button>
+    <button class="tab"        onclick="switchTab('signup')">Sign Up</button>
+  </div>
+
+  <!-- Sign In Form -->
+  <div class="form active" id="form-signin">
+    <div id="signin-msg" class="msg"></div>
+
+    <div class="field">
+      <label>Email address</label>
+      <input type="email" id="si-email" placeholder="you@example.com"
+             onkeydown="if(event.key==='Enter') signIn()"/>
+    </div>
+
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="si-password" placeholder="Enter your password"
+             onkeydown="if(event.key==='Enter') signIn()"/>
+    </div>
+
+    <button class="btn-primary" id="signin-btn" onclick="signIn()">
+      Sign in
+    </button>
+  </div>
+
+  <!-- Sign Up Form -->
+  <div class="form" id="form-signup">
+    <div id="signup-msg" class="msg"></div>
+
+    <div class="field">
+      <label>Full name</label>
+      <input type="text" id="su-name" placeholder="Jane Doe"
+             onkeydown="if(event.key==='Enter') signUp()"/>
+    </div>
+
+    <div class="field">
+      <label>Email address</label>
+      <input type="email" id="su-email" placeholder="you@example.com"
+             onkeydown="if(event.key==='Enter') signUp()"/>
+    </div>
+
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="su-password" placeholder="Min. 6 characters"
+             onkeydown="if(event.key==='Enter') signUp()"/>
+    </div>
+
+    <div class="field">
+      <label>Confirm password</label>
+      <input type="password" id="su-confirm" placeholder="Repeat your password"
+             onkeydown="if(event.key==='Enter') signUp()"/>
+    </div>
+
+    <button class="btn-primary" id="signup-btn" onclick="signUp()">
+      Create account
+    </button>
+  </div>
+
+</div>
+
+<script>
+
+  // ── Tab switch ─────────────────────────────────────────────────
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
+
+    if (tab === 'signin') {
+      document.querySelectorAll('.tab')[0].classList.add('active');
+      document.getElementById('form-signin').classList.add('active');
+    } else {
+      document.querySelectorAll('.tab')[1].classList.add('active');
+      document.getElementById('form-signup').classList.add('active');
+    }
+    document.getElementById('signin-msg').className = 'msg';
+    document.getElementById('signup-msg').className = 'msg';
+  }
+
+  function showMsg(id, text, type) {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = 'msg ' + type;
+  }
+
+  // ── Button loading state ───────────────────────────────────────
+  function setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    if (loading) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Please wait…';
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = btnId === 'signin-btn' ? 'Sign in' : 'Create account';
+    }
+  }
+
+  // ── Sign In ────────────────────────────────────────────────────
+  async function signIn() {
+    const email    = document.getElementById('si-email').value.trim();
+    const password = document.getElementById('si-password').value;
+
+    if (!email || !password) {
+      showMsg('signin-msg', 'Please fill in all fields.', 'error');
+      return;
+    }
+
+    setLoading('signin-btn', true);
+
+    try {
+      const res  = await fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        // token aur user localStorage mein save karo
+        localStorage.setItem('sms_token', data.token);
+        localStorage.setItem('sms_user', JSON.stringify(data.user));
+
+        showMsg('signin-msg', `Welcome, ${data.user.name}! Redirecting…`, 'success');
+
+        // 1 second baad dashboard pe bhejo
+        setTimeout(() => window.location.href = '/index.html', 1000);
+      } else {
+        showMsg('signin-msg', data.message || 'Invalid email or password.', 'error');
+      }
+    } catch (err) {
+      showMsg('signin-msg', 'Server error. Please try again.', 'error');
+    }
+
+    setLoading('signin-btn', false);
+  }
+
+  // ── Sign Up ────────────────────────────────────────────────────
+  async function signUp() {
+    const name     = document.getElementById('su-name').value.trim();
+    const email    = document.getElementById('su-email').value.trim();
+    const password = document.getElementById('su-password').value;
+    const confirm  = document.getElementById('su-confirm').value;
+
+    if (!name || !email || !password || !confirm) {
+      showMsg('signup-msg', 'Please fill in all fields.', 'error');
+      return;
+    }
+
+    if (password.length < 6) {
+      showMsg('signup-msg', 'Password must be at least 6 characters.', 'error');
+      return;
+    }
+
+    if (password !== confirm) {
+      showMsg('signup-msg', 'Passwords do not match.', 'error');
+      return;
+    }
+
+    setLoading('signup-btn', true);
+
+    try {
+      const res  = await fetch('/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        showMsg('signup-msg', 'Account created! You can now sign in.', 'success');
+
+        
+        ['su-name', 'su-email', 'su-password', 'su-confirm'].forEach(id => {
+          document.getElementById(id).value = '';
+        });
+
+      
+        setTimeout(() => switchTab('signin'), 1500);
+      } else {
+        showMsg('signup-msg', data.message || 'Registration failed.', 'error');
+      }
+    } catch (err) {
+      showMsg('signup-msg', 'Server error. Please try again.', 'error');
+    }
+
+    setLoading('signup-btn', false);
+  }
+
+  // ── Auto redirect if already logged in  ───────────────────
+  window.onload = () => {
+    const token = localStorage.getItem('sms_token');
+    if (token) {
+      fetch('/auth/verify', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      }).then(res => {
+        if (res.ok) {
+          window.location.href = '/index.html';
+        } else {
+          localStorage.removeItem('sms_token');
+          localStorage.removeItem('sms_user');
+        }
+      }).catch(() => {});
+    }
+  };
+
+</script>
+</body>
+</html>
