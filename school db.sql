@@ -1207,3 +1207,4 @@ INSERT INTO Users (name, email, password) VALUES
 ('Rohan Gupta',    'rohan@sms.com',   'rohan123');
 
 SELECT * FROM Users;
+

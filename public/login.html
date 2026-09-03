@@ -212,6 +212,12 @@
              onkeydown="if(event.key==='Enter') signUp()"/>
     </div>
 
+    <div class="field">
+    <label>Student ID (leave blank if you're a teacher)</label>
+    <input type="number" id="su-student-id" placeholder="e.g. 101"
+           onkeydown="if(event.key==='Enter') signUp()"/>
+</div>
+
     <button class="btn-primary" id="signup-btn" onclick="signUp()">
       Create account
     </button>
@@ -296,57 +302,106 @@
   }
 
   // ── Sign Up ────────────────────────────────────────────────────
+  // async function signUp() {
+  //   const name     = document.getElementById('su-name').value.trim();
+  //   const email    = document.getElementById('su-email').value.trim();
+  //   const password = document.getElementById('su-password').value;
+  //   const confirm  = document.getElementById('su-confirm').value;
+
+  //   if (!name || !email || !password || !confirm) {
+  //     showMsg('signup-msg', 'Please fill in all fields.', 'error');
+  //     return;
+  //   }
+
+  //   if (password.length < 6) {
+  //     showMsg('signup-msg', 'Password must be at least 6 characters.', 'error');
+  //     return;
+  //   }
+
+  //   if (password !== confirm) {
+  //     showMsg('signup-msg', 'Passwords do not match.', 'error');
+  //     return;
+  //   }
+
+  //   setLoading('signup-btn', true);
+
+  //   try {
+  //     const res  = await fetch('/auth/register', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ name, email, password })
+  //     });
+
+  //     const data = await res.json();
+
+  //     if (res.ok) {
+  //       showMsg('signup-msg', 'Account created! You can now sign in.', 'success');
+
+        
+  //       ['su-name', 'su-email', 'su-password', 'su-confirm'].forEach(id => {
+  //         document.getElementById(id).value = '';
+  //       });
+
+      
+  //       setTimeout(() => switchTab('signin'), 1500);
+  //     } else {
+  //       showMsg('signup-msg', data.message || 'Registration failed.', 'error');
+  //     }
+  //   } catch (err) {
+  //     showMsg('signup-msg', 'Server error. Please try again.', 'error');
+  //   }
+
+  //   setLoading('signup-btn', false);
+  // }
+
   async function signUp() {
     const name     = document.getElementById('su-name').value.trim();
     const email    = document.getElementById('su-email').value.trim();
     const password = document.getElementById('su-password').value;
     const confirm  = document.getElementById('su-confirm').value;
+    const student_id = document.getElementById('su-student-id').value.trim();   // 👈 naya
 
     if (!name || !email || !password || !confirm) {
-      showMsg('signup-msg', 'Please fill in all fields.', 'error');
-      return;
+        showMsg('signup-msg', 'Please fill in all fields.', 'error');
+        return;
     }
 
     if (password.length < 6) {
-      showMsg('signup-msg', 'Password must be at least 6 characters.', 'error');
-      return;
+        showMsg('signup-msg', 'Password must be at least 6 characters.', 'error');
+        return;
     }
 
     if (password !== confirm) {
-      showMsg('signup-msg', 'Passwords do not match.', 'error');
-      return;
+        showMsg('signup-msg', 'Passwords do not match.', 'error');
+        return;
     }
 
     setLoading('signup-btn', true);
 
     try {
-      const res  = await fetch('/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        showMsg('signup-msg', 'Account created! You can now sign in.', 'success');
-
-        
-        ['su-name', 'su-email', 'su-password', 'su-confirm'].forEach(id => {
-          document.getElementById(id).value = '';
+        const res  = await fetch('/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password, student_id: student_id || null })   // 👈 student_id add kiya
         });
 
-      
-        setTimeout(() => switchTab('signin'), 1500);
-      } else {
-        showMsg('signup-msg', data.message || 'Registration failed.', 'error');
-      }
+        const data = await res.json();
+
+        if (res.ok) {
+            showMsg('signup-msg', 'Account created! You can now sign in.', 'success');
+            ['su-name', 'su-email', 'su-password', 'su-confirm', 'su-student-id'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            setTimeout(() => switchTab('signin'), 1500);
+        } else {
+            showMsg('signup-msg', data.message || 'Registration failed.', 'error');
+        }
     } catch (err) {
-      showMsg('signup-msg', 'Server error. Please try again.', 'error');
+        showMsg('signup-msg', 'Server error. Please try again.', 'error');
     }
 
     setLoading('signup-btn', false);
-  }
+}
 
   // ── Auto redirect if already logged in  ───────────────────
   window.onload = () => {

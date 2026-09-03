@@ -138,6 +138,7 @@
     .page { display: none; }
     .page.active { display: block; }
 
+
     .page-header {
       margin-bottom: 28px;
     }
@@ -453,12 +454,12 @@
     tbody tr:last-child td { border-bottom: none; }
 
     tbody tr:hover { background: #fafbff; }
-
+/* 
     .actions-cell {
       display: flex;
       gap: 6px;
       align-items: center;
-    }
+    } */
 
     /* ── Badge ── */
     .badge {
@@ -645,7 +646,6 @@
     <div id="page-dashboard" class="page active">
       <div class="page-header">
         <h1>Dashboard</h1>
-        <p>Overview of your student management data</p>
       </div>
 
       <div class="stats-grid">
@@ -675,7 +675,6 @@
         <div class="card-header">
           <div>
             <div class="card-title">Course Popularity</div>
-            <div class="card-subtitle">Students enrolled per course</div>
           </div>
         </div>
         <div class="chart-wrap">
@@ -688,7 +687,6 @@
     <div id="page-students" class="page">
       <div class="page-header">
         <h1>Students</h1>
-        <p>Add, edit, and manage student records</p>
       </div>
 
       <div class="card">
@@ -696,10 +694,10 @@
           <div class="card-title">Add new student</div>
         </div>
         <div class="form-grid">
-          <div class="field">
+          <!-- <div class="field"> 
             <label>Student ID</label>
             <input type="number" id="student_id" placeholder="e.g. 101"/>
-          </div>
+          </div> -->
           <div class="field">
             <label>First name</label>
             <input type="text" id="first_name" placeholder="Jane"/>
@@ -719,7 +717,7 @@
           <div class="field" style="justify-content:flex-end;">
             <button class="btn btn-primary" onclick="addStudent()">Add student</button>
           </div>
-        </div>
+        </div> 
       </div>
 
       <div id="edit-student-banner"></div>
@@ -749,7 +747,6 @@
     <div id="page-courses" class="page">
       <div class="page-header">
         <h1>Courses</h1>
-        <p>Manage course catalog and instructor assignments</p>
       </div>
 
       <div class="card">
@@ -805,7 +802,6 @@
     <div id="page-enrollments" class="page">
       <div class="page-header">
         <h1>Enrollments</h1>
-        <p>Track course registrations and student grades</p>
       </div>
 
       <div class="card">
@@ -865,7 +861,6 @@
     <div id="page-search" class="page">
       <div class="page-header">
         <h1>Search &amp; lookup</h1>
-        <p>Find courses by student, find students by course, or look up a specific student–course record</p>
       </div>
 
       <!-- Top row: Panel 1 + Panel 2 -->
@@ -876,7 +871,6 @@
           <div class="card-header" style="margin-bottom:14px;">
             <div>
               <div class="card-title">👤 Student → courses</div>
-              <div class="card-subtitle">All courses a student is enrolled in</div>
             </div>
           </div>
           <div class="search-row" style="margin-bottom:16px;">
@@ -900,13 +894,12 @@
           <div class="card-header" style="margin-bottom:14px;">
             <div>
               <div class="card-title">📚 Course → students</div>
-              <div class="card-subtitle">All students enrolled in a course</div>
             </div>
           </div>
           <div class="search-row" style="margin-bottom:16px;">
             <div class="search-input-wrap" style="flex:1;max-width:none;">
               <span class="search-icon">🔍</span>
-              <input type="text" id="search_course_name" placeholder="Enter course name or ID…"
+              <input type="text" id="search_course_name" placeholder="Enter course name"
                 onkeydown="if(event.key==='Enter') searchCourseStudents()"/>
             </div>
             <button class="btn btn-primary" onclick="searchCourseStudents()">Search</button>
@@ -914,7 +907,7 @@
           <div id="course-search-output">
             <div class="empty-state" style="padding:32px 0;">
               <div class="empty-state-icon">📚</div>
-              <div class="empty-state-text">Enter a course name or ID to see enrolled students</div>
+              <div class="empty-state-text">Enter a course name to see enrolled students</div>
             </div>
           </div>
         </div>
@@ -926,7 +919,6 @@
         <div class="card-header" style="margin-bottom:14px;">
           <div>
             <div class="card-title">🎓 Student + Course lookup</div>
-            <div class="card-subtitle">Find a specific student's details in a particular course</div>
           </div>
         </div>
         <div class="search-row" style="margin-bottom:16px;">
@@ -952,6 +944,11 @@
 
     </div>
 
+    <!-- <div class="card teacher-only">
+      <div class="card-header"><div class="card-title">Add new student</div></div>
+      ...
+    </div> -->
+
   </main>
 
   <!-- Toast notification -->
@@ -960,15 +957,20 @@
 <script>
   // ── Auth check — agar login nahi kiya to login page pe bhejo ──
   const _token = localStorage.getItem('sms_token');
-  const _user  = JSON.parse(localStorage.getItem('sms_user') || 'null');
+const _user  = JSON.parse(localStorage.getItem('sms_user') || 'null');
 
-  if (!_token || !_user) {
+if (!_token || !_user) {
     window.location.href = '/login.html';
-  } else {
+} else {
     // user info sidebar mein dikhao
     document.getElementById('user-name').textContent  = _user.name;
     document.getElementById('user-email').textContent = _user.email;
-  }
+
+    // Ab safely role check kar sakte hain, kyunki _user guaranteed exist karta hai
+    if (_user.role !== 'teacher') {
+        document.querySelectorAll('.teacher-only').forEach(el => el.style.display = 'none');
+    }
+}
 
   // ── authFetch — har request ke saath token bhejo ─────────────────
   // Ye normal authFetch() ki jagah use hoga
@@ -1122,7 +1124,7 @@
   // store data globally for bulk edit access
   let _studentsData = [];
 
-  const PAGE_SIZE = 25;
+  const PAGE_SIZE = 10;
   let _studentPage = 1;
   let _coursePage  = 1;
   let _enrollPage  = 1;
@@ -1141,7 +1143,7 @@
       <thead><tr>
         <th style="width:36px;"><input type="checkbox" id="select-all-students" onclick="toggleSelectAll('students', this.checked)" title="Select all"/></th>
         <th>ID</th><th>First name</th><th>Last name</th>
-        <th>Email</th><th>Enrolled</th><th>Actions</th>
+        <th>Email</th><th>Enrolled</th>
       </tr></thead><tbody>`;
 
     pageData.forEach(r => {
@@ -1152,10 +1154,10 @@
         <td>${r.last_name}</td>
         <td style="color:var(--text-secondary)">${r.email}</td>
         <td style="color:var(--text-secondary)">${fmtDate(r.enrollment_date)}</td>
-        <td><div class="actions-cell">
+        <!-- <td><div class="actions-cell">
           <button class="btn btn-ghost btn-sm" onclick="editStudent('${r.student_id}','${r.first_name}','${r.last_name}','${r.email}','${r.enrollment_date}')">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteStudent(${r.student_id})">Delete</button>
-        </div></td>
+          <button class="btn btn-danger btn-sm" onclick="deleteStudent(${r.student_id})">Delete</button> 
+        </div></td> -->
       </tr>`;
     });
 
@@ -1199,39 +1201,62 @@
     loadStudents();
   }
 
-  async function deleteStudent(id) {
-    // check how many enrollments this student has first
-    const countRes = await authFetch(`/students/${id}/enrollment-count`);
-    const { count } = await countRes.json();
+  // async function deleteStudent(id) {
+  //   // check how many enrollments this student has first
+  //   const countRes = await authFetch(`/students/${id}/enrollment-count`);
+  //   const { count } = await countRes.json();
 
-    let msg = 'Delete this student?';
-    if (count > 0) {
-      msg = `This student has ${count} enrollment record(s). Deleting will also remove all ${count} of their enrollments. Continue?`;
-    }
-    if (!confirm(msg)) return;
+  //   let msg = 'Delete this student?';
+  //   if (count > 0) {
+  //     msg = `This student has ${count} enrollment record(s). Deleting will also remove all ${count} of their enrollments. Continue?`;
+  //   }
+  //   if (!confirm(msg)) return;
 
-    const res = await authFetch(`/students/${id}?cascade=true`, { method: 'DELETE' });
-    const r = await res.json();
-    if (!res.ok) { showToast(r.error || 'Delete failed', 'error'); return; }
-    showToast(r.message || 'Student deleted');
-    loadStudents();
-  }
+  //   const res = await authFetch(`/students/${id}?cascade=true`, { method: 'DELETE' });
+  //   const r = await res.json();
+  //   if (!res.ok) { showToast(r.error || 'Delete failed', 'error'); return; }
+  //   showToast(r.message || 'Student deleted');
+  //   loadStudents();
+  // }
+
+  // async function addStudent() {
+  //   const body = {
+  //     student_id:      document.getElementById('student_id').value,
+  //     first_name:      document.getElementById('first_name').value,
+  //     last_name:       document.getElementById('last_name').value,
+  //     email:           document.getElementById('email').value,
+  //     enrollment_date: document.getElementById('enrollment_date').value,
+  //   };
+  //   if (Object.values(body).some(v => !v)) { showToast('Please fill all fields', 'error'); return; }
+  //   const res = await authFetch('/students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  //   const r = await res.json();
+  //   showToast(r.message || 'Student added');
+  //   ['student_id','first_name','last_name','email','enrollment_date'].forEach(id => document.getElementById(id).value = '');
+  //   loadStudents();
+  // }
 
   async function addStudent() {
     const body = {
-      student_id:      document.getElementById('student_id').value,
-      first_name:      document.getElementById('first_name').value,
-      last_name:       document.getElementById('last_name').value,
-      email:           document.getElementById('email').value,
-      enrollment_date: document.getElementById('enrollment_date').value,
+        first_name:      document.getElementById('first_name').value,
+        last_name:       document.getElementById('last_name').value,
+        email:           document.getElementById('email').value,
+        enrollment_date: document.getElementById('enrollment_date').value,
     };
     if (Object.values(body).some(v => !v)) { showToast('Please fill all fields', 'error'); return; }
+    
     const res = await authFetch('/students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const r = await res.json();
-    showToast(r.message || 'Student added');
-    ['student_id','first_name','last_name','email','enrollment_date'].forEach(id => document.getElementById(id).value = '');
+    
+    if (r.newStudentId && r.loginEmail) {
+        showToast(`${r.message} (Student ID: ${r.newStudentId})`);
+        alert(`Student added!\n\nStudent ID: ${r.newStudentId}\nLogin Email: ${r.loginEmail}\nLogin Password: ${r.loginPassword}\n\nPlease share these credentials with the student.`);
+    } else {
+        showToast(r.message || 'Student added');
+    }
+    
+    ['first_name','last_name','email','enrollment_date'].forEach(id => document.getElementById(id).value = '');
     loadStudents();
-  }
+}
 
   // ── Courses ──────────────────────────────────────────────────────
   async function loadCourses() {
@@ -1255,7 +1280,7 @@
     let html = `<table>
       <thead><tr>
         <th style="width:36px;"><input type="checkbox" id="select-all-courses" onclick="toggleSelectAll('courses', this.checked)" title="Select all"/></th>
-        <th>ID</th><th>Course name</th><th>Instructor</th><th>Credits</th><th>Actions</th>
+        <th>ID</th><th>Course name</th><th>Instructor</th><th>Credits</th>
       </tr></thead><tbody>`;
 
     pageData.forEach(r => {
@@ -1265,10 +1290,10 @@
         <td>${r.course_name}</td>
         <td style="color:var(--text-secondary)">${r.instructor}</td>
         <td><span class="badge badge-blue">${r.credits} cr</span></td>
-        <td><div class="actions-cell">
+        <!--<td><div class="actions-cell">
           <button class="btn btn-ghost btn-sm" onclick="editCourse(${r.course_id},'${r.course_name}','${r.instructor}',${r.credits})">Edit</button>
           <button class="btn btn-danger btn-sm" onclick="deleteCourse(${r.course_id})">Delete</button>
-        </div></td>
+        </div></td> -->
       </tr>`;
     });
 
@@ -1308,23 +1333,6 @@
     loadCourses();
   }
 
-  async function deleteCourse(id) {
-    const countRes = await authFetch(`/courses/${id}/enrollment-count`);
-    const { count } = await countRes.json();
-
-    let msg = 'Delete this course?';
-    if (count > 0) {
-      msg = `This course has ${count} enrollment record(s). Deleting will also remove all ${count} of those enrollments. Continue?`;
-    }
-    if (!confirm(msg)) return;
-
-    const res = await authFetch(`/courses/${id}?cascade=true`, { method: 'DELETE' });
-    const r = await res.json();
-    if (!res.ok) { showToast(r.error || 'Delete failed', 'error'); return; }
-    showToast(r.message || 'Course deleted');
-    loadCourses();
-  }
-
   async function addCourse() {
     const body = {
       course_id:   document.getElementById('course_id').value,
@@ -1341,101 +1349,83 @@
   }
 
   // ── Enrollments ──────────────────────────────────────────────────
-  async function loadEnrollments() {
-    const res  = await authFetch('/enrollments');
-    const data = await res.json();
-    renderEnrollmentTable(data);
-  }
+async function loadEnrollments() {
+  const res  = await authFetch('/enrollments');
+  const data = await res.json();
+  renderEnrollmentTable(data);
+}
 
-  let _enrollmentsData = [];
+let _enrollmentsData = [];
 
-  function renderEnrollmentTable(data) {
-    _enrollmentsData = data;
-    const out = document.getElementById('enrollments-output');
-    if (!data.length) { out.innerHTML = emptyState('📋', 'No enrollments found'); return; }
+function renderEnrollmentTable(data) {
+  _enrollmentsData = data;
+  const out = document.getElementById('enrollments-output');
+  if (!data.length) { out.innerHTML = emptyState('📋', 'No enrollments found'); return; }
 
-    const totalPages = Math.ceil(data.length / PAGE_SIZE);
-    if (_enrollPage > totalPages) _enrollPage = 1;
-    const start = (_enrollPage - 1) * PAGE_SIZE;
-    const pageData = data.slice(start, start + PAGE_SIZE);
+  const totalPages = Math.ceil(data.length / PAGE_SIZE);
+  if (_enrollPage > totalPages) _enrollPage = 1;
+  const start = (_enrollPage - 1) * PAGE_SIZE;
+  const pageData = data.slice(start, start + PAGE_SIZE);
 
-    let html = `<table>
-      <thead><tr>
-        <th style="width:36px;"><input type="checkbox" id="select-all-enrollments" onclick="toggleSelectAll('enrollments', this.checked)" title="Select all"/></th>
-        <th>Enrollment ID</th><th>Student ID</th><th>Course ID</th>
-        <th>Date</th><th>Grade</th><th>Actions</th>
-      </tr></thead><tbody>`;
+  let html = `<table>
+    <thead><tr>
+      <th style="width:36px;"><input type="checkbox" id="select-all-enrollments" onclick="toggleSelectAll('enrollments', this.checked)" title="Select all"/></th>
+      <th>Enrollment ID</th><th>Student ID</th><th>Course ID</th>
+      <th>Date</th><th>Grade</th>
+    </tr></thead><tbody>`;
 
-    pageData.forEach(r => {
-      html += `<tr id="enrollment-row-${r.enrollment_id}">
-        <td><input type="checkbox" class="enrollment-cb" value="${r.enrollment_id}" onchange="updateBulkToolbar('enrollments')" data-row='${JSON.stringify(r)}'/></td>
-        <td><strong>#${r.enrollment_id}</strong></td>
-        <td id="e-sid-${r.enrollment_id}">#${r.student_id}</td>
-        <td id="e-cid-${r.enrollment_id}">#${r.course_id}</td>
-        <td id="e-date-${r.enrollment_id}" style="color:var(--text-secondary)">${fmtDate(r.enrollment_date)}</td>
-        <td id="e-grade-${r.enrollment_id}">${gradeBadge(r.grade)}</td>
-        <td><div class="actions-cell">
-          <button class="btn btn-ghost btn-sm" onclick="editEnrollment(${r.enrollment_id},${r.student_id},${r.course_id},'${r.enrollment_date}','${r.grade}')">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteEnrollment(${r.enrollment_id})">Delete</button>
-        </div></td>
-      </tr>`;
-    });
+  pageData.forEach(r => {
+    html += `<tr id="enrollment-row-${r.enrollment_id}">
+      <td><input type="checkbox" class="enrollment-cb" value="${r.enrollment_id}" onchange="updateBulkToolbar('enrollments')" data-row='${JSON.stringify(r)}'/></td>
+      <td><strong>#${r.enrollment_id}</strong></td>
+      <td>#${r.student_id}</td>
+      <td>#${r.course_id}</td>
+      <td style="color:var(--text-secondary)">${fmtDate(r.enrollment_date)}</td>
+      <td>${gradeBadge(r.grade)}</td>
+      <!-- <td><div class="actions-cell">
+        <button class="btn btn-ghost btn-sm" onclick="editEnrollment(${r.enrollment_id},${r.student_id},${r.course_id},'${r.enrollment_date}','${r.grade}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteEnrollment(${r.enrollment_id})">Delete</button> 
+      </div></td> -->
+    </tr>`;
+  });
 
-    html += '</tbody></table>';
-    html += buildPagination('enroll', _enrollPage, totalPages, data.length, start, pageData.length);
-    out.innerHTML = html;
-    clearEnrollmentSelection();
-  }
+  html += '</tbody></table>';
+  html += buildPagination('enroll', _enrollPage, totalPages, data.length, start, pageData.length);
+  out.innerHTML = html;
+  clearEnrollmentSelection();
+}
 
-  // ── Inline row editing for enrollments ───────────────────────────
-  function makeRowEditable(eid, sid, cid, rawDate, grade) {
-    const fmt = new Date(rawDate).toISOString().split('T')[0];
-    const row = document.getElementById('enrollment-row-' + eid);
-    row.classList.add('editing');
+// ── Banner Edit Form for Enrollments ─────────────────────────────
+function editEnrollment(id, sid, cid, date, grade) {
+  const formattedDate = date ? new Date(date).toISOString().split('T')[0] : '';
 
-    document.getElementById('e-sid-' + eid).innerHTML   = `<input class="inline-input" id="ie-sid-${eid}"   type="number" value="${sid}"   style="width:70px"/>`;
-    document.getElementById('e-cid-' + eid).innerHTML   = `<input class="inline-input" id="ie-cid-${eid}"   type="number" value="${cid}"   style="width:70px"/>`;
-    document.getElementById('e-date-' + eid).innerHTML  = `<input class="inline-input" id="ie-date-${eid}"  type="date"   value="${fmt}"  style="width:130px"/>`;
-    document.getElementById('e-grade-' + eid).innerHTML = `<input class="inline-input" id="ie-grade-${eid}" type="text"   value="${grade}" style="width:50px"/>`;
-
-    // replace action buttons with Save / Cancel
-    row.querySelector('.actions-cell').innerHTML = `
-      <button class="save-row-btn"   onclick="saveInlineEnrollment(${eid})">✓ Save</button>
-      <button class="cancel-row-btn" onclick="loadEnrollments()">✕</button>`;
-  }
-
-  async function saveInlineEnrollment(eid) {
-    const body = {
-      student_id:      document.getElementById('ie-sid-'  + eid).value,
-      course_id:       document.getElementById('ie-cid-'  + eid).value,
-      enrollment_date: document.getElementById('ie-date-' + eid).value,
-      grade:           document.getElementById('ie-grade-'+ eid).value,
-    };
-    if (Object.values(body).some(v => !v)) { showToast('All fields required', 'error'); return; }
-    const res = await authFetch('/enrollments/' + eid, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    const r = await res.json();
-    showToast(r.message || 'Enrollment updated');
-    loadEnrollments();
-  }
-
-  // ── Bulk EDIT enrollments — inline edit all selected rows ─────────
-  function bulkEditEnrollments() {
-    const checked = getChecked('enrollment-cb');
-    if (!checked.length) { showToast('Select at least one enrollment', 'error'); return; }
-    checked.forEach(cb => {
-      const r = JSON.parse(cb.getAttribute('data-row'));
-      makeRowEditable(r.enrollment_id, r.student_id, r.course_id, r.enrollment_date, r.grade);
-    });
-    showToast(`${checked.length} row(s) now editable — edit and save each`);
-  }
-
-  function editEnrollment(id, sid, cid, date, grade) {
-    makeRowEditable(id, sid, cid, date, grade);
-  }
+  document.getElementById('edit-enrollment-banner').innerHTML = `
+    <div class="edit-banner">
+      <div class="edit-banner-title">Editing Enrollment #${id}</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Student ID</label>
+          <input type="number" id="ee_sid" value="${sid}"/>
+        </div>
+        <div class="field">
+          <label>Course ID</label>
+          <input type="number" id="ee_cid" value="${cid}"/>
+        </div>
+        <div class="field">
+          <label>Enrollment Date</label>
+          <input type="date" id="ee_date" value="${formattedDate}"/>
+        </div>
+        <div class="field">
+          <label>Grade</label>
+          <input type="text" id="ee_grade" value="${grade || ''}" placeholder="e.g. A, B+"/>
+        </div>
+        <div class="field" style="justify-content:flex-end;gap:8px;flex-direction:row;align-items:flex-end;">
+          <button class="btn btn-secondary" onclick="document.getElementById('edit-enrollment-banner').innerHTML=''">Cancel</button>
+          <button class="btn btn-primary" onclick="submitEnrollmentEdit(${id})">Save changes</button>
+        </div>
+      </div>
+    </div>`;
+}
 
   async function submitEnrollmentEdit(id) {
     const body = {
@@ -1449,14 +1439,6 @@
     const r = await res.json();
     showToast(r.message || 'Enrollment updated');
     document.getElementById('edit-enrollment-banner').innerHTML = '';
-    loadEnrollments();
-  }
-
-  async function deleteEnrollment(id) {
-    if (!confirm('Delete this enrollment?')) return;
-    const res = await authFetch(`/enrollments/${id}`, { method: 'DELETE' });
-    const r = await res.json();
-    showToast(r.message || 'Enrollment deleted');
     loadEnrollments();
   }
 
@@ -1477,13 +1459,13 @@
   }
 
   // ── Search ───────────────────────────────────────────────────────
-  async function searchStudentCourses() {
+ async function searchStudentCourses() {
     const id = document.getElementById('search_student').value;
     if (!id) { showToast('Enter a student ID', 'error'); return; }
     const res  = await authFetch(`/student-courses/${id}`);
     const data = await res.json();
     const out  = document.getElementById('search-output');
-
+ 
     if (!data.length) { out.innerHTML = emptyState('🔍', `No courses found for student #${id}`); return; }
 
     let html = `<table>
@@ -1624,22 +1606,28 @@
   // ── Bulk DELETE ───────────────────────────────────────────────────
 
   // Generic bulk-delete runner that actually checks each response
-  async function runBulkDelete(ids, urlPrefix, cascade = false) {
-    const suffix = cascade ? '?cascade=true' : '';
-    const results = await Promise.all(ids.map(async (id) => {
-      try {
-        const res = await authFetch(`${urlPrefix}/${id}${suffix}`, { method: 'DELETE' });
+  async function runBulkDelete(ids, type) {
+    try {
+        const res = await authFetch(`/${type}/bulk`, {
+            method: 'DELETE',
+            body: JSON.stringify({ ids })
+        });
+
         const data = await res.json().catch(() => ({}));
-        return { id, ok: res.ok, message: data.message || data.error || `HTTP ${res.status}` };
-      } catch (err) {
-        return { id, ok: false, message: err.message };
-      }
-    }));
 
-    const succeeded = results.filter(r => r.ok);
-    const failed     = results.filter(r => !r.ok);
+        return {
+            ok: res.ok,
+            message: data.message || data.error || `HTTP ${res.status}`,
+            deletedCount: data.deletedCount || 0
+        };
 
-    return { succeeded, failed };
+    } catch (err) {
+        return {
+            ok: false,
+            message: err.message,
+            deletedCount: 0
+        };
+    }
   }
 
   async function bulkDeleteStudents() {
@@ -1660,15 +1648,16 @@
     }
     if (!confirm(msg)) return;
 
-    const { succeeded, failed } = await runBulkDelete(ids, '/students', true);
+    const result = await runBulkDelete(ids, 'students');
 
-    if (failed.length) {
-      console.error('Bulk delete failures:', failed);
-      showToast(`${succeeded.length} deleted, ${failed.length} failed. Check console.`, 'error');
-    } else {
-      showToast(`${succeeded.length} student(s) deleted (with their enrollments)`);
-    }
-    loadStudents();
+if (!result.ok) {
+    console.error('Bulk delete failed:', result.message);
+    showToast(result.message, 'error');
+} else {
+    showToast(`${result.deletedCount} student(s) deleted`);
+}
+
+loadStudents();
   }
 
   async function bulkDeleteCourses() {
@@ -1688,30 +1677,34 @@
     }
     if (!confirm(msg)) return;
 
-    const { succeeded, failed } = await runBulkDelete(ids, '/courses', true);
-
-    if (failed.length) {
-      console.error('Bulk delete failures:', failed);
-      showToast(`${succeeded.length} deleted, ${failed.length} failed. Check console.`, 'error');
+    const result = await runBulkDelete(ids, 'courses');
+    if(!result.ok) {
+      console.error('Bulk delete failed:', result.message);
+      showToast(result.message, 'error');
     } else {
-      showToast(`${succeeded.length} course(s) deleted (with their enrollments)`);
+      showToast(`${result.deletedCount} course(s) deleted`);
     }
     loadCourses();
   }
 
   async function bulkDeleteEnrollments() {
     const ids = getChecked('enrollment-cb').map(cb => cb.value);
+
     if (!ids.length) return;
-    if (!confirm(`Delete ${ids.length} enrollment(s)? This cannot be undone.`)) return;
 
-    const { succeeded, failed } = await runBulkDelete(ids, '/enrollments');
+    const msg = `Delete ${ids.length} enrollment(s)? This cannot be undone.`;
 
-    if (failed.length) {
-      console.error('Bulk delete failures:', failed);
-      showToast(`${succeeded.length} deleted, ${failed.length} failed. Check console.`, 'error');
+    if (!confirm(msg)) return;
+
+    const result = await runBulkDelete(ids, 'enrollments');
+
+    if (!result.ok) {
+        console.error('Bulk delete failed:', result.message);
+        showToast(result.message, 'error');
     } else {
-      showToast(`${succeeded.length} enrollment(s) deleted`);
+        showToast(`${result.deletedCount} enrollment(s) deleted`);
     }
+
     loadEnrollments();
   }
 
@@ -1724,7 +1717,7 @@
 
     let fields = `
       <div class="form-grid">
-        <div class="field"><label>First name <span style="color:var(--text-muted)">(leave blank to keep)</span></label><input id="be_fn" placeholder="New first name"/></div>
+        <div class="field"><label>First name </label><input id="be_fn" placeholder="New first name"/></div>
         <div class="field"><label>Last name</label><input id="be_ln" placeholder="New last name"/></div>
         <div class="field"><label>Email</label><input type="email" id="be_email" placeholder="New email"/></div>
         <div class="field"><label>Enrollment date</label><input type="date" id="be_date"/></div>
@@ -1743,32 +1736,46 @@
   }
 
   async function submitBulkEditStudents(ids) {
-    const fn    = document.getElementById('be_fn').value.trim();
-    const ln    = document.getElementById('be_ln').value.trim();
-    const email = document.getElementById('be_email').value.trim();
-    const date  = document.getElementById('be_date').value;
+  const fn    = document.getElementById('be_fn').value.trim();
+  const ln    = document.getElementById('be_ln').value.trim();
+  const email = document.getElementById('be_email').value.trim();
+  const date  = document.getElementById('be_date').value;
 
-    if (!fn && !ln && !email && !date) { showToast('Fill at least one field to update', 'error'); return; }
+  // Validation: Check if at least one field is filled
+  if (!fn && !ln && !email && !date) { 
+    showToast('Fill at least one field to update', 'error'); 
+    return; 
+  }
 
-    const updates = ids.map(id => {
-      const orig = _studentsData.find(s => s.student_id == id);
-      return authFetch(`/students/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          first_name:      fn    || orig.first_name,
-          last_name:       ln    || orig.last_name,
-          email:           email || orig.email,
-          enrollment_date: date  || new Date(orig.enrollment_date).toISOString().split('T')[0],
-        })
-      });
+  // Payload: Send student IDs along with only the provided fields
+  const payload = { ids };
+  if (fn) payload.first_name = fn;
+  if (ln) payload.last_name = ln;
+  if (email) payload.email = email;
+  if (date) payload.enrollment_date = date;
+
+  try {
+    // Single PUT request to the backend bulk endpoint
+    const res = await authFetch('/students/bulk', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
 
-    await Promise.all(updates);
-    showToast(`${ids.length} student(s) updated`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      showToast(data.error || 'Failed to update students', 'error');
+      return;
+    }
+
+    showToast(data.message || `${data.affectedRows} student(s) updated`);
     document.getElementById('edit-student-banner').innerHTML = '';
     loadStudents();
+  } catch (error) {
+    showToast('Server error while performing bulk update', 'error');
   }
+}
 
   // ── Bulk EDIT — courses ───────────────────────────────────────────
 
@@ -1781,7 +1788,8 @@
       <div class="bulk-edit-banner">
         <div class="bulk-edit-banner-title">Bulk editing ${rows.length} course(s): ${rows.map(r=>r.course_name).join(', ')}</div>
         <div class="form-grid">
-          <div class="field"><label>Instructor <span style="color:var(--text-muted)">(leave blank to keep)</span></label><input id="bec_inst" placeholder="New instructor"/></div>
+          <div class="field"><label>Course name</label><input id="bec_name" placeholder="New course name"/></div>
+          <div class="field"><label>Instructor</label><input id="bec_inst" placeholder="New instructor"/></div>
           <div class="field"><label>Credits</label><input type="number" id="bec_credits" placeholder="New credits"/></div>
           <div class="field" style="justify-content:flex-end;gap:8px;flex-direction:row;align-items:flex-end;">
             <button class="btn btn-secondary" onclick="document.getElementById('edit-course-banner').innerHTML=''">Cancel</button>
@@ -1793,28 +1801,110 @@
   }
 
   async function submitBulkEditCourses(ids) {
-    const inst    = document.getElementById('bec_inst').value.trim();
-    const credits = document.getElementById('bec_credits').value.trim();
-    if (!inst && !credits) { showToast('Fill at least one field to update', 'error'); return; }
+  const name    = document.getElementById('bec_name').value.trim();
+  const inst    = document.getElementById('bec_inst').value.trim();
+  const credits = document.getElementById('bec_credits').value.trim();
 
-    const updates = ids.map(id => {
-      const orig = _coursesData.find(c => c.course_id == id);
-      return authFetch(`/courses/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          course_name: orig.course_name,
-          instructor:  inst    || orig.instructor,
-          credits:     credits || orig.credits,
-        })
-      });
+  // Validation: Check if at least one field is filled
+  if (!name && !inst && !credits) { 
+    showToast('Fill at least one field to update', 'error'); 
+    return; 
+  }
+
+  // Payload: Send course IDs along with only the provided fields
+  const payload = { ids };
+  if (name) payload.course_name = name;
+  if (inst) payload.instructor = inst;
+  if (credits) payload.credits = credits;
+
+  try {
+    // Single PUT request to the backend bulk endpoint
+    const res = await authFetch('/courses/bulk', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
 
-    await Promise.all(updates);
-    showToast(`${ids.length} course(s) updated`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      showToast(data.error || 'Failed to update courses', 'error');
+      return;
+    }
+
+    showToast(data.message || `${data.affectedRows} course(s) updated`);
     document.getElementById('edit-course-banner').innerHTML = '';
     loadCourses();
+  } catch (error) {
+    showToast('Server error while performing bulk update', 'error');
   }
+}
+
+  // ── Bulk EDIT — enrollments ───────────────────────────────────────────
+
+  function bulkEditEnrollments() {
+  const checked = getChecked('enrollment-cb');
+  if (!checked.length) return;
+  const rows = checked.map(cb => JSON.parse(cb.getAttribute('data-row')));
+
+  document.getElementById('edit-enrollment-banner').innerHTML = `
+    <div class="bulk-edit-banner">
+      <div class="bulk-edit-banner-title">Bulk editing ${rows.length} enrollment(s): ${rows.map(r=>'#'+r.enrollment_id).join(', ')}</div>
+      <div class="form-grid">
+        <div class="field"><label>Student ID </label><input type="number" id="bee_sid" placeholder="New student ID"/></div>
+        <div class="field"><label>Course ID</label><input type="number" id="bee_cid" placeholder="New course ID"/></div>
+        <div class="field"><label>Enrollment date</label><input type="date" id="bee_date"/></div>
+        <div class="field"><label>Grade</label><input type="text" id="bee_grade" placeholder="New grade"/></div>
+        <div class="field" style="justify-content:flex-end;gap:8px;flex-direction:row;align-items:flex-end;">
+          <button class="btn btn-secondary" onclick="document.getElementById('edit-enrollment-banner').innerHTML=''">Cancel</button>
+          <button class="btn btn-primary" onclick="submitBulkEditEnrollments(${JSON.stringify(rows.map(r=>r.enrollment_id))})">Save to ${rows.length} enrollment(s)</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('edit-enrollment-banner').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function submitBulkEditEnrollments(ids) {
+  const sid   = document.getElementById('bee_sid').value.trim();
+  const cid   = document.getElementById('bee_cid').value.trim();
+  const date  = document.getElementById('bee_date').value;
+  const grade = document.getElementById('bee_grade').value.trim();
+
+  // Validation: Check if at least one field is filled
+  if (!sid && !cid && !date && !grade) { 
+    showToast('Fill at least one field to update', 'error'); 
+    return; 
+  }
+
+  // Payload: Send  IDs along with only the provided fields
+  const payload = { ids };
+  if (sid) payload.student_id = sid;
+  if (cid) payload.course_id = cid;
+  if (date) payload.enrollment_date = date;
+  if (grade) payload.grade = grade;
+  
+  try {
+    // Single PUT request to the backend bulk endpoint
+    const res = await authFetch('/enrollments/bulk', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      showToast(data.error || 'Failed to update enrollments', 'error');
+      return;
+    }
+
+    showToast(data.message || `${data.affectedRows} enrollment(s) updated`);
+    document.getElementById('edit-enrollment-banner').innerHTML = '';
+    loadEnrollments();
+  } catch (error) {
+    showToast('Server error while performing bulk update', 'error');
+  }
+}
 
   // ── Pagination helpers ───────────────────────────────────────────
 
